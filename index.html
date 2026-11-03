@@ -1,0 +1,727 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Estúdio de Peças</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Bricolage+Grotesque:wght@400;700;800&family=DM+Sans:wght@400;500;700&family=Fraunces:wght@600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: formulário (briefing) à esquerda, linha de trabalho do agente + resultados à direita; uma coluna no celular. */
+:root{
+  --bg:#EDF0F3; --surface:#FFFFFF; --surface2:#F4F6F8; --ink:#12181E; --muted:#58646F; --line:#D5DCE3;
+  --accent:#0A6B58; --on-accent:#FFFFFF; --accent-soft:#DAEFE9; --ok:#1B7F4B; --warn:#9A5200; --err:#B3261E;
+  --f-display:'Bricolage Grotesque',system-ui,sans-serif; --f-body:'DM Sans',system-ui,sans-serif; --f-mono:'JetBrains Mono',ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0D1114; --surface:#151B20; --surface2:#1B232A; --ink:#E7ECF0; --muted:#92A0AB; --line:#28333C;
+  --accent:#4FDDB5; --on-accent:#04231B; --accent-soft:#12332C; --ok:#5BD38F; --warn:#F2B45A; --err:#FF8A80; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --bg:#0D1114; --surface:#151B20; --surface2:#1B232A; --ink:#E7ECF0; --muted:#92A0AB; --line:#28333C;
+  --accent:#4FDDB5; --on-accent:#04231B; --accent-soft:#12332C; --ok:#5BD38F; --warn:#F2B45A; --err:#FF8A80; color-scheme:dark; }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1280px;margin:0 auto}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px}
+h1{font:800 clamp(28px,4vw,40px)/1.05 var(--f-display);margin:0;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:6px 0 0;max-width:60ch}
+.badge{font:500 12px var(--f-mono);padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted)}
+.badge.on{color:var(--accent);border-color:var(--accent)}
+.app{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
+@media (min-width:980px){.app{grid-template-columns:minmax(0,440px) minmax(0,1fr)}}
+form{display:flex;flex-direction:column;gap:14px;min-width:0}
+fieldset{border:1px solid var(--line);background:var(--surface);border-radius:14px;margin:0;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+legend{font:700 13px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:0 6px;color:var(--accent)}
+label{display:flex;flex-direction:column;gap:5px;font-weight:500;font-size:14px;min-width:0}
+.hint{font-weight:400;color:var(--muted);font-size:13px}
+input[type=text],textarea,select{font:inherit;color:var(--ink);background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:9px 11px;width:100%;min-width:0}
+textarea{resize:vertical;min-height:84px}
+input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible,.drop:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.row2{grid-template-columns:1fr}}
+.check{flex-direction:row;align-items:flex-start;gap:9px;font-weight:500}
+.check input{margin-top:4px;accent-color:var(--accent);width:16px;height:16px;flex:none}
+.drop{position:relative;border:1.5px dashed var(--line);border-radius:11px;padding:14px;text-align:center;color:var(--muted);background:var(--surface2);cursor:pointer;font-size:14px}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.thumb{position:relative;width:64px;height:64px;border-radius:9px;overflow:hidden;border:1px solid var(--line);background:var(--surface2)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb.logo img{object-fit:contain;padding:4px}
+.thumb button{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:0;background:rgba(0,0,0,.7);color:#fff;font-size:12px;line-height:1;cursor:pointer;padding:0}
+.formats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:420px){.formats{grid-template-columns:1fr}}
+.fmt{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--surface2);cursor:pointer;display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.fmt input{accent-color:var(--accent);margin-top:3px}
+.fmt b{display:block;font-size:14px}
+.fmt span{color:var(--muted);font:500 11px var(--f-mono)}
+.summary-box{background:var(--accent-soft);border-radius:9px;padding:10px 12px;font-size:13.5px}
+.summary-box .tag{font:500 11px var(--f-mono);letter-spacing:.05em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:3px}
+.meter{font:500 12px var(--f-mono);color:var(--muted)}
+.sub-opts{display:grid;gap:10px;padding:10px 12px;border-left:3px solid var(--accent);background:var(--surface2);border-radius:0 9px 9px 0}
+.sub-opts[hidden]{display:none}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+button.primary{font:700 16px var(--f-body);background:var(--accent);color:var(--on-accent);border:0;border-radius:11px;padding:13px 20px;cursor:pointer;flex:1 1 220px}
+button.primary:disabled{opacity:.55;cursor:wait}
+button.ghost{font:500 14px var(--f-body);background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:8px 13px;cursor:pointer}
+button.ghost:hover{border-color:var(--accent);color:var(--accent)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.panel h2{font:700 13px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;margin:0 0 12px;color:var(--accent)}
+.right{display:flex;flex-direction:column;gap:16px;min-width:0}
+ol.steps{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+ol.steps li{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;font-size:14px;color:var(--muted)}
+ol.steps .dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);margin-top:2px}
+ol.steps li.active{color:var(--ink)} ol.steps li.active .dot{border-color:var(--accent);border-top-color:transparent;animation:spin 1s linear infinite}
+ol.steps li.done{color:var(--ink)} ol.steps li.done .dot{background:var(--accent);border-color:var(--accent)}
+ol.steps li.skip .dot{background:var(--line)} ol.steps li.err .dot{background:var(--err);border-color:var(--err)}
+ol.steps small{display:block;color:var(--muted);font-size:12.5px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){ol.steps li.active .dot{animation:none}}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tab{font:500 13px var(--f-body);border:1px solid var(--line);background:var(--surface2);color:var(--ink);padding:7px 12px;border-radius:999px;cursor:pointer}
+.tab[aria-selected=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.pieces{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px;align-items:flex-start}
+.piece{flex:0 0 auto;display:flex;flex-direction:column;gap:8px}
+.piece canvas{display:block;width:100%;height:auto;border-radius:10px;border:1px solid var(--line);background:var(--surface2)}
+.piece .cap{font:500 12px var(--f-mono);color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.piece details{font-size:13px}
+.piece summary{cursor:pointer;color:var(--muted)}
+.piece details label{margin-top:8px;font-size:12.5px}
+.piece input[type=text],.piece textarea{font-size:13px;padding:6px 8px}
+.note{font-size:13px;color:var(--muted)}
+.note.err{color:var(--err)}
+.checks{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.checks li{display:grid;grid-template-columns:22px 1fr;gap:8px;font-size:14px}
+.checks .ic{font:700 13px var(--f-mono);text-align:center;border-radius:6px;height:20px;line-height:20px;margin-top:2px}
+.checks .ok .ic{background:var(--accent-soft);color:var(--ok)} .checks .warn .ic{background:rgba(190,110,0,.16);color:var(--warn)} .checks .info .ic{background:var(--surface2);color:var(--muted)}
+.checks small{display:block;color:var(--muted);font-size:12.5px}
+.capbox textarea{min-height:180px;font-size:14px}
+.capmeta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:8px 0}
+.grid2{display:grid;gap:16px;grid-template-columns:minmax(0,1fr)}
+.toast{font-size:13px;color:var(--accent);min-height:20px}
+.sr{position:absolute;left:-9999px}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Estúdio de Peças</h1>
+      <p class="sub">Entregue o briefing, as referências e o texto. O agente resume, define a direção de arte, monta as peças de feed e stories, confere as boas práticas da Meta e escreve a legenda.</p>
+    </div>
+    <span class="badge" id="aiBadge">verificando IA…</span>
+  </header>
+
+  <div class="app">
+    <form id="form" autocomplete="off" onsubmit="return false">
+      <fieldset>
+        <legend>Briefing</legend>
+        <label for="brief">O que a peça precisa comunicar
+          <textarea id="brief">Lançamento do blend de verão da cafeteria Oficina do Grão: café gelado com notas de maracujá e rapadura. Quero levar as pessoas à loja no fim de semana.</textarea>
+        </label>
+        <div class="row2">
+          <label for="goal">Objetivo
+            <select id="goal"><option>Levar à loja</option><option>Engajar</option><option>Vender</option><option>Informar</option><option>Gerar autoridade</option><option>Lançar produto</option></select>
+          </label>
+          <label for="tone">Tom de voz
+            <select id="tone"><option value="descontraido">Descontraído</option><option value="profissional">Profissional</option><option value="inspirador">Inspirador</option><option value="urgente">Urgente</option><option value="premium">Premium</option></select>
+          </label>
+        </div>
+        <label for="audience">Público <input type="text" id="audience" value="Jovens de 20 a 35 anos do bairro"></label>
+        <button type="button" class="ghost" id="clearExample" style="align-self:flex-start">Limpar exemplo</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Referências</legend>
+        <div class="drop" id="refDrop"><input type="file" id="refFile" accept="image/*" multiple aria-label="Adicionar imagens de referência">Arraste imagens ou toque para escolher (até 6)</div>
+        <div class="thumbs" id="refThumbs"></div>
+        <label class="check"><input type="checkbox" id="useBg" checked><span>Usar as referências como fundo das peças<span class="hint"> (com camada de cor para manter o texto legível)</span></span></label>
+        <label for="refNotes">Notas sobre as referências <span class="hint">estilo, cores, inspirações, o que evitar</span>
+          <textarea id="refNotes" style="min-height:60px" placeholder="Ex.: luz natural, tons quentes, visual limpo, sem excesso de elementos"></textarea>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Logo</legend>
+        <div class="drop" id="logoDrop"><input type="file" id="logoFile" accept="image/png,image/svg+xml,image/jpeg,image/webp" aria-label="Adicionar logo">Arraste o logo ou toque para escolher (PNG com fundo transparente funciona melhor)</div>
+        <div class="thumbs" id="logoThumb"></div>
+        <label for="logoPos">Posição do logo
+          <select id="logoPos"><option value="top-left">Topo à esquerda</option><option value="top-right">Topo à direita</option><option value="top-center">Topo ao centro</option><option value="bot-left">Base à esquerda</option><option value="bot-right">Base à direita</option></select>
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Texto da peça</legend>
+        <label for="title">Título <input type="text" id="title" value="Blend de Verão chegou" maxlength="80"></label>
+        <label for="subtitle">Subtítulo <input type="text" id="subtitle" value="Café gelado com maracujá e rapadura" maxlength="120"></label>
+        <label for="content">Conteúdo dentro da imagem
+          <textarea id="content" style="min-height:130px">O Blend de Verão é feito com grãos de torra média do sul de Minas, coados a frio por 14 horas. O resultado é um café doce e refrescante, com notas de maracujá e um fundo de rapadura. Servimos sobre gelo grande, que derrete devagar e não aguada a bebida. Durante o fim de semana, quem pedir o blend leva o segundo copo pela metade do preço. A promoção vale nas duas unidades, até domingo às 18 horas.</textarea>
+        </label>
+        <label class="check"><input type="checkbox" id="auto" checked><span>Auto-resumo<span class="hint"> reduz o texto ao tamanho que cabe na peça, mantendo as ideias principais</span></span></label>
+        <div class="meter" id="meter"></div>
+        <div class="summary-box" id="sumBox" hidden><span class="tag">Prévia do resumo</span><span id="sumText"></span></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Formato e extras</legend>
+        <div class="formats">
+          <label class="fmt"><input type="checkbox" name="fmt" value="feed45" checked><span><b>Feed 4:5</b><span>1080×1350</span></span></label>
+          <label class="fmt"><input type="checkbox" name="fmt" value="feed11"><span><b>Feed 1:1</b><span>1080×1080</span></span></label>
+          <label class="fmt"><input type="checkbox" name="fmt" value="story" checked><span><b>Stories</b><span>1080×1920</span></span></label>
+        </div>
+        <label class="check"><input type="checkbox" id="carousel"><span>Gerar em carrossel<span class="hint"> para conteúdos mais extensos: capa, slides de conteúdo e chamada final</span></span></label>
+        <div class="sub-opts" id="carOpts" hidden>
+          <label for="nSlides">Número de slides (com capa e chamada final)
+            <select id="nSlides"><option value="auto">Automático</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select>
+          </label>
+        </div>
+        <label class="check"><input type="checkbox" id="wantCaption" checked><span>Gerar também a legenda das peças</span></label>
+        <div class="sub-opts" id="capOpts">
+          <div class="row2">
+            <label for="capLen">Tamanho<select id="capLen"><option value="curta">Curta</option><option value="media" selected>Média</option><option value="longa">Longa</option></select></label>
+            <label for="capEmoji">Emojis<select id="capEmoji"><option value="poucos" selected>Poucos</option><option value="nenhum">Nenhum</option></select></label>
+          </div>
+          <label class="check"><input type="checkbox" id="capTags" checked><span>Incluir hashtags (até 5)</span></label>
+          <label class="check"><input type="checkbox" id="capCta" checked><span>Incluir chamada para ação</span></label>
+        </div>
+      </fieldset>
+
+      <div class="btns">
+        <button type="button" class="primary" id="go">Gerar peças</button>
+        <button type="button" class="ghost" id="stop" hidden>Parar</button>
+      </div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </form>
+
+    <div class="right">
+      <section class="panel" id="stepsPanel" hidden>
+        <h2>Trabalho do agente</h2>
+        <ol class="steps" id="steps"></ol>
+      </section>
+      <section class="panel" id="previewPanel">
+        <h2>Pré-visualização ao vivo</h2>
+        <div class="pieces"><div class="piece" id="prevPiece" style="width:260px"><canvas id="prevCanvas"></canvas><div class="cap"><span>Rascunho local</span><span>antes de gerar</span></div></div></div>
+        <p class="note" style="margin:10px 0 0">Mostra a capa com as cores das referências e o seu logo. O texto e a direção de arte finais saem quando você gerar.</p>
+      </section>
+      <div id="results"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const val=id=>$(id).value.trim();
+const chk=id=>$(id).checked;
+
+/* ---------- Formatos (medidas e zonas seguras segundo as boas práticas da Meta) ---------- */
+const FORMATS={
+  feed45:{id:'feed45',label:'Feed 4:5',w:1080,h:1350,top:96,bottom:96,pw:250},
+  feed11:{id:'feed11',label:'Feed 1:1',w:1080,h:1080,top:90,bottom:90,pw:250},
+  story:{id:'story',label:'Stories 9:16',w:1080,h:1920,top:250,bottom:340,pw:190}   /* 14% no topo, 20% na base livres */
+};
+const FONTS={
+  moderno:{fam:'"Bricolage Grotesque",system-ui,sans-serif',w:800,upper:false,name:'Moderno'},
+  editorial:{fam:'Fraunces,Georgia,serif',w:700,upper:false,name:'Editorial'},
+  impacto:{fam:'Anton,Impact,sans-serif',w:400,upper:true,name:'Impacto'}
+};
+const BODY='"DM Sans",system-ui,sans-serif', MONO='"JetBrains Mono",monospace';
+const TONE_DEFAULTS={
+  descontraido:{p:{bg:'#FFD84A',accent:'#E4572E',alt:'#1F7A5C'},font:'moderno',layout:'cor'},
+  profissional:{p:{bg:'#0F2A3F',accent:'#F2B544',alt:'#4DA3C7'},font:'moderno',layout:'cor'},
+  inspirador:{p:{bg:'#2B1B4E',accent:'#FF8A5B',alt:'#8E7CC3'},font:'editorial',layout:'cor'},
+  urgente:{p:{bg:'#151515',accent:'#FF3B30',alt:'#FFD60A'},font:'impacto',layout:'tipo'},
+  premium:{p:{bg:'#14110F',accent:'#C9A66B',alt:'#8A6F45'},font:'editorial',layout:'tipo'}
+};
+const CTA_BY_GOAL={'Levar à loja':'Venha nos visitar','Engajar':'Conte nos comentários','Vender':'Garanta o seu agora','Informar':'Salve para consultar depois','Gerar autoridade':'Siga para mais conteúdos','Lançar produto':'Conheça o lançamento'};
+
+const state={refs:[],logo:null,results:null,running:false,ctl:null,sample:null,downloads:null,fontsReady:null};
+
+/* ---------- Utilidades de cor ---------- */
+const hex2rgb=h=>{h=h.replace('#','');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16));};
+const rgb2hex=c=>'#'+c.map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+const lum=c=>{const f=v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4)};return .2126*f(c[0])+.7152*f(c[1])+.0722*f(c[2]);};
+const contrast=(a,b)=>{const l1=lum(hex2rgb(a)),l2=lum(hex2rgb(b));return (Math.max(l1,l2)+.05)/(Math.min(l1,l2)+.05);};
+const rgba=(h,a)=>{const c=hex2rgb(h);return `rgba(${c[0]},${c[1]},${c[2]},${a})`;};
+const isHex=s=>typeof s==='string'&&/^#[0-9a-f]{6}$/i.test(s);
+const sat=c=>{const mx=Math.max(...c),mn=Math.min(...c);return mx===0?0:(mx-mn)/mx;};
+const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+function bestFg(bg){return contrast('#FFFFFF',bg)>=contrast('#0B0F12',bg)?'#FFFFFF':'#0B0F12';}
+function fixPalette(p){
+  const bg=isHex(p.bg)?p.bg:'#0F2A3F';
+  let fg=isHex(p.fg)?p.fg:bestFg(bg);
+  if(contrast(fg,bg)<4.5) fg=bestFg(bg);
+  let accent=isHex(p.accent)?p.accent:'#F2B544';
+  const alt=isHex(p.alt)?p.alt:accent;
+  return {bg,fg,accent,alt};
+}
+
+/* ---------- Imagens ---------- */
+function loadImage(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>res({img:im,url:fr.result});im.onerror=rej;im.src=fr.result;};fr.onerror=rej;fr.readAsDataURL(file);});}
+function imgLum(img){
+  const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d');x.drawImage(img,0,0,32,32);
+  const d=x.getImageData(0,0,32,32).data;let s=0,n=0;
+  for(let i=0;i<d.length;i+=4){if(d[i+3]>40){s+=lum([d[i],d[i+1],d[i+2]]);n++;}}
+  return n?s/n:.5;
+}
+function toBlob(img,max){
+  return new Promise(res=>{const k=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));const c=document.createElement('canvas');
+    c.width=Math.round(img.naturalWidth*k);c.height=Math.round(img.naturalHeight*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);c.toBlob(b=>res(b),'image/jpeg',.82);});
+}
+function extractBins(img,map){
+  const s=48,c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d');x.drawImage(img,0,0,s,s);
+  const d=x.getImageData(0,0,s,s).data;
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<128)continue;const k=((d[i]>>4)<<8)|((d[i+1]>>4)<<4)|(d[i+2]>>4);map.set(k,(map.get(k)||0)+1);}
+}
+function paletteFromRefs(refs){
+  const map=new Map();refs.forEach(r=>extractBins(r.img,map));
+  const list=[...map].map(([k,n])=>({c:[((k>>8)&15)*16+8,((k>>4)&15)*16+8,(k&15)*16+8],n})).sort((a,b)=>b.n-a.n);
+  const picked=[];
+  for(const e of list){if(picked.every(p=>dist(p.c,e.c)>70)){picked.push(e);if(picked.length>=6)break;}}
+  const dom=picked[0].c;
+  let acc=picked.slice(1).filter(p=>sat(p.c)>.35).sort((a,b)=>sat(b.c)*Math.sqrt(b.n)-sat(a.c)*Math.sqrt(a.n))[0];
+  const accent=acc?acc.c:(lum(dom)>.4?[20,30,40]:[255,200,80]);
+  const alt=(picked.find(p=>p!==acc&&dist(p.c,dom)>70&&dist(p.c,accent)>70)||{c:accent}).c;
+  return {bg:rgb2hex(dom),accent:rgb2hex(accent),alt:rgb2hex(alt),list:picked.map(p=>rgb2hex(p.c))};
+}
+
+/* ---------- Resumo e roteiro locais (modo sem IA) ---------- */
+const STOP=new Set('de a o que e do da em um para é com não uma os no se na por mais as dos como mas foi ao ele das tem à seu sua ou ser quando muito há nos já está eu também só pelo pela até isso ela entre era depois sem mesmo aos ter seus quem nas me esse eles estão você tinham foram essa num nem suas meu às minha têm numa pelos elas havia seja qual será nós tenho lhe deles essas esses pelas este fosse dele sobre quem vale'.split(' '));
+const sentences=t=>(t.replace(/\s+/g,' ').trim().match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g)||[]).map(s=>s.trim()).filter(Boolean);
+const wordsOf=t=>(t.toLowerCase().match(/[a-zà-ú]{4,}/g)||[]).filter(w=>!STOP.has(w));
+function cutWords(t,max){if(t.length<=max)return t;const c=t.slice(0,max-1);return c.replace(/[\s,;:–-]+\S*$/,'').replace(/[.,;:–-]+$/,'')+'…';}
+function summarize(text,limit){
+  text=text.replace(/\s+/g,' ').trim();if(text.length<=limit)return text;
+  const S=sentences(text);const freq={};wordsOf(text).forEach(w=>freq[w]=(freq[w]||0)+1);
+  const sc=S.map((s,i)=>{const w=wordsOf(s);return {i,s,v:w.reduce((a,b)=>a+freq[b],0)/Math.sqrt(w.length||1)+(i===0?3:0)};}).sort((a,b)=>b.v-a.v);
+  const keep=[];let len=0;
+  for(const e of sc){const add=e.s.length+(keep.length?1:0);if(len+add<=limit){keep.push(e);len+=add;}}
+  if(!keep.length)return cutWords(sc[0].s,limit);
+  return keep.sort((a,b)=>a.i-b.i).map(e=>e.s).join(' ');
+}
+function topKeywords(text,n){const f={};wordsOf(text).filter(w=>w.length>=5).forEach(w=>f[w]=(f[w]||0)+1);return Object.entries(f).sort((a,b)=>b[1]-a[1]).slice(0,n).map(e=>'#'+e[0].normalize('NFD').replace(/[̀-ͯ]/g,''));}
+const cap1=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function localSlides(text,count){
+  const S=sentences(text);if(!S.length)return [];
+  count=Math.max(1,Math.min(count,S.length));const per=Math.ceil(S.length/count);const out=[];
+  for(let i=0;i<S.length;i+=per){const g=S.slice(i,i+per);let head,body;
+    if(g.length>1){head=cutWords(g[0].replace(/[.!?…]+$/,''),48);body=cutWords(g.slice(1).join(' '),140);}
+    else{const one=g[0];const cl=one.split(/[,:;–—-]/)[0];head=cutWords((cl.length>12?cl:one).replace(/[.!?…]+$/,''),48);body=cutWords(one,140);}
+    out.push({titulo:cap1(head),texto:body});}
+  return out;
+}
+
+/* ---------- Configuração lida do formulário ---------- */
+function readCfg(){
+  return {brief:val('brief'),goal:val('goal'),tone:$('tone').value,audience:val('audience'),refNotes:val('refNotes'),useBg:chk('useBg'),
+    logoPos:$('logoPos').value,title:val('title'),subtitle:val('subtitle'),content:val('content'),auto:chk('auto'),
+    formats:[...document.querySelectorAll('input[name=fmt]:checked')].map(i=>i.value),carousel:chk('carousel'),nSlides:$('nSlides').value,
+    wantCaption:chk('wantCaption'),capLen:$('capLen').value,capTags:chk('capTags'),capCta:chk('capCta'),capEmoji:$('capEmoji').value,
+    refs:state.refs,logo:state.logo};
+}
+const limitChars=cfg=>cfg.carousel?140:170;
+
+/* ---------- Texto: ajuste e quebra ---------- */
+function wrap(x,text,maxW){
+  const ws=text.split(/\s+/).filter(Boolean),lines=[];let cur='';
+  for(const w of ws){const t=cur?cur+' '+w:w;if(x.measureText(t).width>maxW&&cur){lines.push(cur);cur=w;}else cur=t;}
+  if(cur)lines.push(cur);return lines;
+}
+function fit(x,text,fontFn,maxW,maxH,max,min,lh,maxLines){
+  for(let s=max;s>=min;s-=2){x.font=fontFn(s);const L=wrap(x,text,maxW);if(L.length<=maxLines&&L.length*s*lh<=maxH)return {size:s,lines:L};}
+  x.font=fontFn(min);let L=wrap(x,text,maxW);
+  const cap=Math.max(1,Math.min(maxLines,Math.floor(maxH/(min*lh))));
+  if(L.length>cap){L=L.slice(0,cap);L[cap-1]=L[cap-1].replace(/\s*\S+$/,'')+'…';}
+  return {size:min,lines:L};
+}
+function coverFit(x,img,dx,dy,dw,dh){const k=Math.max(dw/img.naturalWidth,dh/img.naturalHeight);const w=img.naturalWidth*k,h=img.naturalHeight*k;x.drawImage(img,dx+(dw-w)/2,dy+(dh-h)/2,w,h);}
+function rr(x,a,b,w,h,r){x.beginPath();if(x.roundRect)x.roundRect(a,b,w,h,r);else x.rect(a,b,w,h);}
+
+/* ---------- Composição de uma peça ---------- */
+function drawPiece(cv,P){
+  const F=P.fmt,W=F.w,H=F.h,x=cv.getContext('2d');cv.width=W;cv.height=H;
+  const pal=P.dir.palette,S=P.slide,FD=FONTS[P.dir.font]||FONTS.moderno,mx=90;
+  const M={bounds:[],minFont:999,words:0,contrast:contrast(pal.fg,pal.bg)};
+  let layout=P.dir.layout;if(layout==='foto'&&!P.bgImg)layout='cor';
+  x.fillStyle=pal.bg;x.fillRect(0,0,W,H);
+  const idx=P.idx||0;
+  if(layout==='foto'){
+    coverFit(x,P.bgImg,0,0,W,H);
+    const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,rgba(pal.bg,.5));g.addColorStop(.45,rgba(pal.bg,.74));g.addColorStop(1,rgba(pal.bg,.95));
+    x.fillStyle=g;x.fillRect(0,0,W,H);
+  }else if(layout==='cor'){
+    x.fillStyle=rgba(pal.accent,.2);x.beginPath();x.arc(W*(1.05-.24*idx),H*.2,W*.62,0,7);x.fill();
+    x.fillStyle=rgba(pal.alt,.24);x.beginPath();x.arc(W*(.55-.24*idx),H*.82,W*.3,0,7);x.fill();
+  }else{
+    const g=S.kind==='content'?String(idx+1).padStart(2,'0'):((S.title||'A').trim().charAt(0).toUpperCase());
+    x.fillStyle=rgba(pal.accent,.16);x.font=`${FD.w} ${Math.round(W*1.15)}px ${FD.fam}`;x.textAlign='right';x.textBaseline='alphabetic';
+    x.fillText(g,W+W*.04-idx*60,H*.98);
+  }
+  x.textAlign='left';x.textBaseline='top';
+  /* faixas de logo e indicador */
+  const hasLogo=!!P.logo,lp=P.logoPos||'top-left';
+  const logoTop=hasLogo&&lp.startsWith('top'),logoBot=hasLogo&&lp.startsWith('bot'),dots=P.total>1;
+  const topY=F.top,botY=H-F.bottom,rowH=96;
+  const ctop=topY+(logoTop?rowH+34:0),cbot=botY-((logoBot||dots)?rowH+30:0);
+  if(hasLogo){
+    const k=S.kind==='content'?.8:1,boxH=rowH*k,maxW=260*k;
+    const plate=Math.abs(P.logo.lum-lum(hex2rgb(pal.bg)))<.4,pd=plate?14:0;
+    const ar=P.logo.img.naturalWidth/P.logo.img.naturalHeight;
+    let dh=boxH-2*pd,dw=dh*ar;if(dw>maxW-2*pd){dw=maxW-2*pd;dh=dw/ar;}
+    const bw=dw+2*pd,bh=dh+2*pd;
+    const bx=lp.endsWith('left')?mx:lp.endsWith('right')?W-mx-bw:(W-bw)/2;
+    const by=logoTop?topY:botY-bh;
+    if(plate){x.fillStyle=lum(hex2rgb(pal.bg))<.5?'#FFFFFF':'#101418';rr(x,bx,by,bw,bh,16);x.fill();}
+    x.drawImage(P.logo.img,bx+pd,by+pd,dw,dh);
+    M.bounds.push({x:bx,y:by,w:bw,h:bh,kind:'logo'});
+  }
+  if(dots){
+    const gap=30,tot=(P.total-1)*gap,sx=(W-tot)/2,cy=botY-22;
+    for(let i=0;i<P.total;i++){x.fillStyle=i===idx?pal.fg:rgba(pal.fg,.35);x.beginPath();x.arc(sx+i*gap,cy,i===idx?9:7,0,7);x.fill();}
+    M.bounds.push({x:sx-10,y:cy-10,w:tot+20,h:20,kind:'ui'});
+    if(idx===0&&P.total>1&&lp!=='bot-right'){x.fillStyle=rgba(pal.fg,.8);x.font=`500 28px ${MONO}`;x.textAlign='right';x.fillText('ARRASTE →',W-mx,cy-14);x.textAlign='left';M.bounds.push({x:W-mx-210,y:cy-14,w:210,h:30,kind:'ui'});}
+  }
+  /* blocos de texto */
+  const avail=cbot-ctop,maxW=W-2*mx,blocks=[];
+  const txt=s=>FD.upper?s.toUpperCase():s;
+  const big=S.kind==='cover'||S.kind==='single';
+  const tf=s=>`${FD.w} ${s}px ${FD.fam}`,sf=s=>`500 ${s}px ${BODY}`,bf=s=>`400 ${s}px ${BODY}`;
+  const add=(text,fontFn,max,min,lh,maxH,maxLines,color,gapAfter,type)=>{
+    if(!text)return;const f=fit(x,text,fontFn,maxW,maxH,max,min,lh,maxLines);
+    blocks.push({lines:f.lines,size:f.size,font:fontFn(f.size),lh,color,gap:gapAfter,type});M.minFont=Math.min(M.minFont,f.size);M.words+=text.split(/\s+/).length;};
+  const scale=F.id==='story'?1.1:1;
+  if(big){
+    add(txt(S.title),tf,Math.round((FD.upper?150:132)*scale),72,FD.upper?1.02:1.04,avail*(S.kind==='single'?.38:.46),5,pal.fg,30,'title');
+    add(S.subtitle,sf,Math.round(52*scale),38,1.25,avail*.2,3,rgba(pal.fg,.9),S.kind==='single'?34:0,'sub');
+    if(S.kind==='single')add(S.body,bf,Math.round(46*scale),36,1.32,avail*.3,6,rgba(pal.fg,.85),0,'body');
+  }else if(S.kind==='content'){
+    add(txt(S.headline),tf,Math.round((FD.upper?110:96)*scale),60,FD.upper?1.04:1.06,avail*.4,4,pal.fg,32,'title');
+    add(S.body,bf,Math.round(54*scale),38,1.32,avail*.45,8,rgba(pal.fg,.9),0,'body');
+  }else{
+    add(txt(S.headline),tf,Math.round((FD.upper?124:108)*scale),64,FD.upper?1.02:1.05,avail*.36,4,pal.fg,30,'title');
+    add(S.body,bf,Math.round(50*scale),38,1.32,avail*.28,5,rgba(pal.fg,.9),S.button?46:0,'body');
+  }
+  const ruleH=12,ruleGap=34;let th=ruleH+ruleGap;
+  blocks.forEach(b=>th+=b.lines.length*b.size*b.lh+b.gap);
+  let pillH=0;
+  if(S.kind==='cta'&&S.button){pillH=96;th+=pillH;}
+  let y=layout==='foto'?cbot-th:ctop+Math.max(0,(avail-th)/2);y=Math.max(ctop,y);
+  x.fillStyle=pal.accent;rr(x,mx,y,110,ruleH,6);x.fill();y+=ruleH+ruleGap;
+  const y0=y;let mw=110;
+  blocks.forEach(b=>{x.font=b.font;x.fillStyle=b.color;
+    b.lines.forEach((ln,i)=>{x.fillText(ln,mx,y+i*b.size*b.lh+(b.lh-1)*b.size*.5);mw=Math.max(mw,x.measureText(ln).width);});
+    y+=b.lines.length*b.size*b.lh+b.gap;});
+  if(pillH){
+    x.font=`700 40px ${BODY}`;const tw=x.measureText(S.button).width,pw=tw+84;
+    x.fillStyle=pal.accent;rr(x,mx,y,pw,pillH,pillH/2);x.fill();
+    x.fillStyle=bestFg(pal.accent);x.textBaseline='middle';x.fillText(S.button,mx+42,y+pillH/2+2);x.textBaseline='top';
+    M.minFont=Math.min(M.minFont,40);M.words+=S.button.split(/\s+/).length;mw=Math.max(mw,pw);y+=pillH;
+  }
+  M.bounds.push({x:mx,y:y0-ruleH-ruleGap,w:Math.min(mw,maxW),h:y-(y0-ruleH-ruleGap),kind:'text'});
+  if(M.minFont===999)M.minFont=0;
+  return M;
+}
+
+/* ---------- Assistente: IA e etapas ---------- */
+const STEP_DEFS=[['brief','Lendo o briefing'],['refs','Analisando as referências'],['copy','Resumindo o texto e montando o roteiro'],['art','Definindo a direção de arte'],['compose','Compondo as peças'],['check','Conferindo as boas práticas da Meta'],['caption','Escrevendo a legenda']];
+function resetSteps(){const ol=$('steps');ol.innerHTML='';STEP_DEFS.forEach(([id,t])=>{const li=document.createElement('li');li.id='st-'+id;li.innerHTML='<span class="dot"></span><span><span class="t"></span><small></small></span>';li.querySelector('.t').textContent=t;ol.appendChild(li);});$('stepsPanel').hidden=false;}
+function setStep(id,st,detail){const li=$('st-'+id);if(!li)return;li.className=st;li.querySelector('small').textContent=detail||'';}
+function toast(t){$('toast').textContent=t||'';}
+const ERR_COPY={not_granted:'A permissão para usar o Claude não foi concedida. As peças foram geradas no modo local.',rate_limited:'Limite de uso do Claude atingido. Geração feita no modo local.',invalid_json:'A resposta da IA veio fora do formato. Geração feita no modo local.',cancelled:'Geração interrompida.',unavailable:'IA indisponível neste ambiente. Geração feita no modo local.'};
+
+function buildPrompt(cfg,hintPal,nContent,imgCount){
+  const L=limitChars(cfg);
+  return `Você é um agente de criação de peças para Instagram e Facebook, e segue as boas práticas da Meta: mensagem principal visível em segundos, pouco texto na imagem, gancho forte na primeira peça, uma chamada clara no fim, legenda cujas primeiras 125 caracteres já carregam o gancho, no máximo 5 hashtags.
+
+BRIEFING: ${cfg.brief.slice(0,2000)||'(não informado)'}
+OBJETIVO: ${cfg.goal}
+TOM DE VOZ: ${cfg.tone}
+PÚBLICO: ${cfg.audience||'(não informado)'}
+TÍTULO DO USUÁRIO: ${cfg.title||'(vazio, crie um)'}
+SUBTÍTULO DO USUÁRIO: ${cfg.subtitle||'(vazio, crie um)'}
+NOTAS SOBRE AS REFERÊNCIAS: ${cfg.refNotes||'(nenhuma)'}
+${imgCount?`As ${imgCount} imagem(ns) anexa(s) são referências visuais do usuário. Observe paleta, clima, composição e tipografia sugerida.`:'Não há imagens de referência.'}
+${hintPal?`Cores dominantes extraídas das referências: ${hintPal.join(', ')}.`:''}
+CONTEÚDO BRUTO (vai dentro da imagem):
+"""
+${cfg.content.slice(0,6000)}
+"""
+
+TAREFA:
+- ${cfg.auto?`Resuma o conteúdo bruto para caber nas peças: cada texto de peça com no máximo ${L} caracteres, mantendo as ideias principais e os dados concretos (preço, prazo, local).`:'Use o conteúdo bruto como está, apenas dividindo entre as peças; não resuma.'}
+- Mantenha o título e o subtítulo do usuário quando existirem; só reescreva se passarem de 45 e 80 caracteres.
+- ${cfg.carousel?`Formato CARROSSEL: crie exatamente ${nContent} slides de conteúdo (sem contar a capa nem a chamada final). Cada slide tem "titulo" (até 45 caracteres) e "texto" (até ${L}). Crie também a chamada final em "cta".`:'Formato de PEÇA ÚNICA: crie o campo "peca_unica" com o texto de apoio.'}
+- Direção de arte: escolha paleta de 4 cores (fundo, texto com contraste mínimo 4,5:1 sobre o fundo, destaque, apoio) coerente com as referências e o tom; "fonte" entre moderno, editorial ou impacto; "layout" entre foto (usa as referências como fundo), cor (fundo sólido com formas) ou tipo (tipográfico). ${cfg.useBg&&cfg.refs.length?'O usuário aceita referências como fundo.':'Não use o layout foto.'}
+- ${cfg.wantCaption?`Legenda ${cfg.capLen}: primeira linha com o gancho em até 125 caracteres; ${cfg.capCta?'inclua chamada para ação; ':''}${cfg.capEmoji==='nenhum'?'sem emojis; ':'poucos emojis; '}${cfg.capTags?'até 5 hashtags relevantes em "hashtags"; ':'hashtags vazias; '}tom ${cfg.tone}. Português do Brasil.`:'Não crie legenda.'}
+- Crie também "alt": descrição da peça para acessibilidade, em uma frase.
+
+Responda SOMENTE com um objeto JSON neste formato (omita o que não se aplica):
+{"direcao":{"racional":"uma frase","paleta":{"fundo":"#RRGGBB","texto":"#RRGGBB","destaque":"#RRGGBB","apoio":"#RRGGBB"},"fonte":"moderno","layout":"cor"},"titulo":"","subtitulo":"","peca_unica":{"texto":""},"slides":[{"titulo":"","texto":""}],"cta":{"titulo":"","texto":"","botao":""},"legenda":{"texto":"","hashtags":["#exemplo"]},"alt":""}`;
+}
+
+async function callClaude(cfg,hintPal,nContent){
+  const sample=state.sample;if(!sample)throw {code:'unavailable'};
+  const opts={signal:state.ctl.signal,onText:({text})=>setStep('copy','active','Claude está escrevendo… '+text.length+' caracteres')};
+  const lim=await (sample.limits?sample.limits().catch(()=>null):null);
+  let n=0;
+  if(cfg.refs.length&&lim&&lim.images){const use=cfg.refs.slice(0,Math.min(4,lim.images.maxCount||4));opts.images=await Promise.all(use.map(r=>toBlob(r.img,768)));n=use.length;}
+  return sample.json(buildPrompt(cfg,hintPal,nContent,n),opts);
+}
+const S_=(v,max)=>typeof v==='string'?cutWords(v.replace(/\s+/g,' ').trim(),max):'';
+
+/* ---------- Pipeline completo ---------- */
+async function run(){
+  if(state.running)return;
+  const cfg=readCfg();
+  if(!cfg.brief&&!cfg.title&&!cfg.content){toast('Preencha ao menos o briefing, o título ou o conteúdo.');return;}
+  if(!cfg.formats.length){toast('Escolha pelo menos um formato.');return;}
+  state.running=true;state.ctl=new AbortController();$('go').disabled=true;$('go').textContent='Gerando…';$('stop').hidden=false;toast('');
+  $('results').innerHTML='';$('previewPanel').hidden=true;resetSteps();
+  try{
+    setStep('brief','done',`${cfg.goal} · tom ${$('tone').selectedOptions[0].text.toLowerCase()} · ${cfg.formats.length} formato(s)${cfg.carousel?' · carrossel':''}`);
+    setStep('refs','active','');
+    const td=TONE_DEFAULTS[cfg.tone];let localPal={...td.p},hint=null;
+    if(cfg.refs.length){const p=paletteFromRefs(cfg.refs);localPal={bg:p.bg,accent:p.accent,alt:p.alt};hint=p.list;setStep('refs','done',`${cfg.refs.length} imagem(ns) · cores ${p.list.slice(0,4).join(' ')}`);}
+    else setStep('refs','skip','Sem referências: usei as cores do tom escolhido');
+    const nTotal=cfg.carousel?(cfg.nSlides==='auto'?Math.max(4,Math.min(8,Math.ceil(cfg.content.length/200)+2)):+cfg.nSlides):1;
+    const nContent=Math.max(1,nTotal-2);
+    setStep('copy','active','Enviando ao Claude…');
+    let ai=null,usedAI=false;
+    try{ai=await callClaude(cfg,hint,nContent);usedAI=!!ai&&typeof ai==='object';}
+    catch(e){if(e&&e.code==='cancelled')throw e;toast(ERR_COPY[e&&e.code]||'Não consegui falar com o Claude. Geração feita no modo local.');ai=null;}
+    ai=ai||{};
+    const L=limitChars(cfg);
+    const title=S_(ai.titulo,60)&&!cfg.title?S_(ai.titulo,60):(cfg.title||S_(ai.titulo,60)||cutWords(cfg.brief.split(/[.!?]/)[0],50)||'Novidade');
+    const subtitle=cfg.subtitle||S_(ai.subtitulo,90);
+    let body='',slides=[],cta=null;
+    if(!cfg.carousel){
+      body=S_(ai.peca_unica&&ai.peca_unica.texto,cfg.auto?L+20:400)||(cfg.auto?summarize(cfg.content,L):cfg.content);
+    }else{
+      const aiSlides=Array.isArray(ai.slides)?ai.slides.map(s=>({titulo:S_(s&&s.titulo,52),texto:S_(s&&s.texto,cfg.auto?L+20:300)})).filter(s=>s.titulo||s.texto):[];
+      slides=aiSlides.length?aiSlides:localSlides(cfg.content||cfg.brief,nContent);
+      if(!slides.length)slides=[{titulo:title,texto:cfg.brief}];
+      const c=ai.cta||{};
+      cta={titulo:S_(c.titulo,48)||CTA_BY_GOAL[cfg.goal]||'Fale com a gente',texto:S_(c.texto,L)||cfg.subtitle||'',botao:S_(c.botao,26)||CTA_BY_GOAL[cfg.goal]||'Saiba mais'};
+    }
+    setStep('copy','done',usedAI?(cfg.auto?'Resumido pelo Claude':'Dividido pelo Claude'):'Modo local: resumo por frases mais relevantes');
+    /* direção de arte */
+    setStep('art','active','');
+    const d=ai.direcao||{};const pl=d.paleta||{};
+    let pal;
+    if(isHex(pl.fundo)&&isHex(pl.destaque)){pal=fixPalette({bg:pl.fundo,fg:pl.texto,accent:pl.destaque,alt:pl.apoio});}
+    else pal=fixPalette(localPal);
+    const canBg=cfg.useBg&&cfg.refs.length>0;
+    let layout=['foto','cor','tipo'].includes(d.layout)?d.layout:(canBg?'foto':td.layout);
+    if(layout==='foto'&&!canBg)layout='cor';
+    if(canBg&&!['foto','cor','tipo'].includes(d.layout))layout='foto';
+    const font=FONTS[d.fonte]?d.fonte:td.font;
+    const dir={palette:pal,font,layout,racional:S_(d.racional,200)};
+    setStep('art','done',`${FONTS[font].name} · layout ${layout==='foto'?'com foto de fundo':layout==='cor'?'cor e formas':'tipográfico'} · ${S_(d.racional,110)||'derivado das referências e do tom'}`);
+    /* peças */
+    setStep('compose','active','');
+    await ensureFonts();
+    const specs=cfg.carousel?[{kind:'cover',title,subtitle},...slides.map(s=>({kind:'content',headline:s.titulo,body:s.texto})),{kind:'cta',headline:cta.titulo,body:cta.texto,button:cta.botao}]:[{kind:'single',title,subtitle,body}];
+    const R={cfg,dir,formats:cfg.formats.slice(),current:cfg.formats[0],pieces:{},caption:null,alt:S_(ai.alt,300)||`Peça com o título "${title}"${subtitle?' e o subtítulo "'+subtitle+'"':''}.`,usedAI};
+    cfg.formats.forEach(f=>{R.pieces[f]=specs.map((s,i)=>({spec:{...s},idx:i,total:specs.length,m:null,cv:null}));});
+    state.results=R;
+    renderResults();
+    setStep('compose','done',`${cfg.formats.length*specs.length} imagem(ns) em 1080 px de largura`);
+    setStep('check','active','');renderChecklist();setStep('check','done','Veja o checklist abaixo das peças');
+    /* legenda */
+    if(cfg.wantCaption){
+      setStep('caption','active','');
+      const lg=ai.legenda||{};let txt=S_(lg.texto,2200);let tags=Array.isArray(lg.hashtags)?lg.hashtags.filter(t=>typeof t==='string').map(t=>'#'+t.replace(/^#+/,'').replace(/\s+/g,'')).slice(0,5):[];
+      if(!txt){
+        const lim={curta:110,media:260,longa:520}[cfg.capLen];
+        const emo=cfg.capEmoji==='nenhum'?'':' ☕';
+        txt=`${cutWords(title,100)}${emo}\n\n${summarize(cfg.content||cfg.brief,lim)}`+(cfg.capCta?`\n\n${CTA_BY_GOAL[cfg.goal]||'Saiba mais'}.`:'');
+        tags=cfg.capTags?topKeywords(title+' '+cfg.content+' '+cfg.brief,5):[];
+      }
+      if(!cfg.capTags)tags=[];
+      R.caption={text:txt,tags};renderCaption();setStep('caption','done',usedAI?'Escrita pelo Claude':'Modo local: modelo de legenda a partir do seu texto');
+    }else setStep('caption','skip','Não solicitada');
+    renderChecklist();
+    $('results').scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){
+    if(e&&e.code==='cancelled'){toast(ERR_COPY.cancelled);document.querySelectorAll('#steps li.active').forEach(li=>li.className='err');}
+    else{console.error(e);toast('Algo deu errado ao montar as peças. Revise os campos e tente de novo.');document.querySelectorAll('#steps li.active').forEach(li=>li.className='err');}
+  }finally{state.running=false;$('go').disabled=false;$('go').textContent='Gerar peças';$('stop').hidden=true;}
+}
+
+/* ---------- Fontes ---------- */
+function ensureFonts(){
+  if(state.fontsReady)return state.fontsReady;
+  const t='ãéçÀÕ';
+  state.fontsReady=Promise.all(['800 40px "Bricolage Grotesque"','700 40px Fraunces','400 40px Anton','400 40px "DM Sans"','500 40px "DM Sans"','700 40px "DM Sans"','500 20px "JetBrains Mono"'].map(f=>document.fonts.load(f,t).catch(()=>{}))).then(()=>{});
+  return state.fontsReady;
+}
+
+/* ---------- Resultado ---------- */
+function el(tag,attrs,...kids){const e=document.createElement(tag);Object.entries(attrs||{}).forEach(([k,v])=>{if(k==='class')e.className=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else e.setAttribute(k,v);});kids.flat().forEach(k=>e.append(k));return e;}
+const slug=s=>(s||'peca').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,30)||'peca';
+function pieceInput(R,p){
+  const bg=R.dir.layout==='foto'&&R.cfg.refs.length?R.cfg.refs[p.idx%R.cfg.refs.length].img:null;
+  return {fmt:FORMATS[p.fmt],dir:R.dir,slide:p.spec,logo:R.cfg.logo,logoPos:R.cfg.logoPos,bgImg:bg,idx:p.idx,total:p.total};
+}
+function redraw(p){p.m=drawPiece(p.cv,pieceInput(state.results,p));}
+function renderResults(){
+  const R=state.results,box=$('results');box.innerHTML='';
+  const panel=el('section',{class:'panel'},el('h2',{},'Peças geradas'));
+  const tabs=el('div',{class:'tabs',role:'tablist'});panel.append(tabs);
+  const area=el('div',{id:'piecesArea'});panel.append(area);
+  const info=el('p',{class:'note'},R.usedAI?'Texto e direção de arte criados pelo Claude a partir do seu briefing e das referências.':'Modo local: as peças usam resumo automático por relevância e as cores extraídas das referências.');
+  panel.append(info);
+  box.append(panel);
+  R.formats.forEach(f=>{R.pieces[f].forEach(p=>p.fmt=f);
+    const b=el('button',{class:'tab',role:'tab',type:'button','data-f':f,onclick:()=>showFormat(f)},`${FORMATS[f].label} · ${R.pieces[f].length}`);tabs.append(b);});
+  const slot=el('div',{class:'grid2',id:'extra'});box.append(slot);
+  showFormat(R.current);
+}
+function showFormat(f){
+  const R=state.results,area=$('piecesArea');R.current=f;area.innerHTML='';
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.f===f));
+  const strip=el('div',{class:'pieces'});area.append(strip);
+  R.pieces[f].forEach((p,i)=>{
+    const fm=FORMATS[f];const cv=el('canvas',{role:'img','aria-label':R.alt});p.cv=cv;
+    const label=p.spec.kind==='single'?'Peça única':p.spec.kind==='cover'?'Capa':p.spec.kind==='cta'?`Slide ${i+1} · chamada final`:`Slide ${i+1} de ${p.total}`;
+    const dl=el('button',{class:'ghost',type:'button',onclick:()=>download(p,f,i)},'Baixar PNG');
+    if(!state.downloads)dl.hidden=true;
+    const fields=editFields(p);
+    const det=el('details',{},el('summary',{},'Editar texto'),...fields);
+    strip.append(el('div',{class:'piece',style:`width:${fm.pw}px`},cv,el('div',{class:'cap'},el('span',{},label),el('span',{},fm.w+'×'+fm.h)),dl,det));
+    redraw(p);
+  });
+  if(!state.downloads)area.append(el('p',{class:'note'},'O download direto não está disponível aqui. Use o botão de compartilhar da imagem ou abra a página no Claude para baixar.'));
+  renderChecklist();
+}
+function editFields(p){
+  const map=p.spec.kind==='single'?[['title','Título',1],['subtitle','Subtítulo',1],['body','Texto',0]]:p.spec.kind==='cover'?[['title','Título',1],['subtitle','Subtítulo',1]]:p.spec.kind==='content'?[['headline','Título do slide',1],['body','Texto',0]]:[['headline','Título',1],['body','Texto',0],['button','Botão',1]];
+  return map.map(([k,lab,one])=>{const inp=one?el('input',{type:'text'}):el('textarea',{rows:'3'});inp.value=p.spec[k]||'';
+    inp.addEventListener('input',()=>{p.spec[k]=inp.value;clearTimeout(p.t);p.t=setTimeout(()=>{redraw(p);renderChecklist();},250);});
+    return el('label',{},lab,inp);});
+}
+async function download(p,f,i){
+  const d=state.downloads;if(!d)return;
+  p.cv.toBlob(async b=>{try{await d.save({filename:`${slug(state.results.cfg.title||state.results.pieces[f][0].spec.title)}-${f}-${String(i+1).padStart(2,'0')}.png`,data:b});toast('Imagem salva.');}catch(e){if(e&&e.code!=='declined')toast('Não foi possível salvar a imagem aqui.');}},'image/png');
+}
+
+/* ---------- Checklist Meta ---------- */
+function renderChecklist(){
+  const R=state.results;if(!R)return;
+  const all=[];R.formats.forEach(f=>R.pieces[f].forEach(p=>{if(p.m)all.push({p,f});}));if(!all.length)return;
+  const items=[];
+  items.push(['ok','Resolução e proporção','1080 px de largura em todos os formatos: 4:5 e 1:1 no feed, 9:16 em stories.']);
+  let unsafe=0;all.forEach(({p,f})=>{const F=FORMATS[f];p.m.bounds.forEach(b=>{if(b.y<F.top-1||b.y+b.h>F.h-F.bottom+1||b.x<80||b.x+b.w>F.w-80)unsafe++;});});
+  items.push([unsafe?'warn':'ok','Zona segura',unsafe?`${unsafe} elemento(s) fora da área segura.`:(R.formats.includes('story')?'Texto e logo fora dos 14% do topo e dos 20% da base em stories, onde a interface do app cobre a imagem.':'Texto e logo respeitam as margens de segurança.')]);
+  const maxW=Math.max(...all.map(a=>a.p.m.words));
+  items.push([maxW>60?'warn':maxW>40?'warn':'ok','Pouco texto por peça',`Maior peça: ${maxW} palavras. ${maxW>40?'Considere encurtar ou passar para carrossel; a Meta recomenda mensagem enxuta na imagem.':'Dentro do recomendado para leitura rápida.'}`]);
+  const minF=Math.min(...all.map(a=>a.p.m.minFont||999));
+  items.push([minF<36?'warn':'ok','Texto legível no celular',`Menor fonte aplicada: ${minF}px em tela de 1080 px.`]);
+  const minC=Math.min(...all.map(a=>a.p.m.contrast));
+  items.push([minC<4.5?'warn':'ok','Contraste texto e fundo',`Razão ${minC.toFixed(1)}:1 (mínimo 4,5:1).`]);
+  items.push([R.cfg.logo?'ok':'info','Marca',R.cfg.logo?'Logo aplicado em todas as peças, com placa de contraste quando o fundo se confunde com ele.':'Nenhum logo enviado. Adicione um para reforçar o reconhecimento da marca.']);
+  if(R.cfg.carousel)items.push(['ok','Carrossel','Capa com gancho, slides de uma ideia cada e chamada para ação no último.']);
+  if(R.caption){const first=R.caption.text.split('\n')[0],ft=R.caption.text.slice(0,125);
+    items.push([first.length<=125?'ok':'warn','Gancho da legenda',first.length<=125?'A primeira linha cabe nos 125 caracteres que aparecem antes do "mais".':'A primeira linha passa de 125 caracteres e será cortada no feed.']);
+    items.push([R.caption.tags.length<=5?'ok':'warn','Hashtags',R.caption.tags.length?`${R.caption.tags.length} hashtag(s). Poucas e relevantes funcionam melhor.`:'Sem hashtags.']);
+  }
+  items.push(['ok','Texto alternativo','Descrição de acessibilidade pronta para colar no campo de texto alternativo.']);
+  let box=$('checkPanel');
+  if(!box){box=el('section',{class:'panel',id:'checkPanel'});$('extra').append(box);}
+  box.innerHTML='';box.append(el('h2',{},'Checklist de boas práticas Meta'));
+  const ul=el('ul',{class:'checks'});
+  items.forEach(([s,t,d])=>ul.append(el('li',{class:s},el('span',{class:'ic'},s==='ok'?'✓':s==='warn'?'!':'i'),el('span',{},t,el('small',{},d)))));
+  box.append(ul);
+}
+function copyText(text,btn){
+  const done=()=>{const o=btn.textContent;btn.textContent='Copiado';setTimeout(()=>btn.textContent=o,1500);};
+  const fallback=()=>{const t=document.createElement('textarea');t.value=text;document.body.append(t);t.select();try{document.execCommand('copy');done();}catch(e){}t.remove();};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,fallback);else fallback();
+}
+function renderCaption(){
+  const R=state.results;if(!R||!R.caption)return;
+  let box=$('capPanel');if(!box){box=el('section',{class:'panel capbox',id:'capPanel'});$('extra').prepend(box);}
+  box.innerHTML='';
+  const full=()=>R.caption.text+(R.caption.tags.length?'\n\n'+R.caption.tags.join(' '):'');
+  const ta=el('textarea',{id:'capText','aria-label':'Legenda'});ta.value=full();
+  const cnt=el('span',{class:'meter'},'');const upd=()=>{cnt.textContent=`${ta.value.length} caracteres · aparecem ${Math.min(125,ta.value.length)} antes do "mais"`;};upd();
+  ta.addEventListener('input',()=>{R.caption.text=ta.value;R.caption.tags=[];upd();renderChecklist();});
+  const cb=el('button',{class:'ghost',type:'button',onclick:()=>copyText(ta.value,cb)},'Copiar legenda');
+  box.append(el('h2',{},'Legenda'),ta,el('div',{class:'capmeta'},cnt,cb));
+  const alt=el('p',{class:'note',style:'margin:0'},el('b',{},'Texto alternativo: '),R.alt);
+  const ab=el('button',{class:'ghost',type:'button',onclick:()=>copyText(R.alt,ab)},'Copiar texto alternativo');
+  box.append(alt,el('div',{style:'margin-top:8px'},ab));
+}
+
+/* ---------- Pré-visualização ao vivo ---------- */
+let pvT;
+function schedulePreview(){clearTimeout(pvT);pvT=setTimeout(updatePreview,350);}
+async function updatePreview(){
+  updateMeter();
+  if(state.results||state.running)return;
+  const cfg=readCfg();await ensureFonts();
+  const td=TONE_DEFAULTS[cfg.tone];let pal={...td.p};
+  if(cfg.refs.length){const p=paletteFromRefs(cfg.refs);pal={bg:p.bg,accent:p.accent,alt:p.alt};}
+  pal=fixPalette(pal);
+  const layout=cfg.useBg&&cfg.refs.length?'foto':td.layout;
+  const fid=cfg.formats[0]||'feed45';
+  const slide=cfg.carousel?{kind:'cover',title:cfg.title||'Seu título aqui',subtitle:cfg.subtitle}:{kind:'single',title:cfg.title||'Seu título aqui',subtitle:cfg.subtitle,body:cfg.auto?summarize(cfg.content,limitChars(cfg)):cfg.content};
+  const box=$('prevPiece');box.style.width=FORMATS[fid].pw+'px';
+  drawPiece($('prevCanvas'),{fmt:FORMATS[fid],dir:{palette:pal,font:td.font,layout},slide,logo:cfg.logo,logoPos:cfg.logoPos,bgImg:cfg.refs[0]&&cfg.refs[0].img,idx:0,total:cfg.carousel?4:1});
+}
+function updateMeter(){
+  const cfg=readCfg(),n=cfg.content.length,L=limitChars(cfg);
+  if(!n){$('meter').textContent='';$('sumBox').hidden=true;return;}
+  if(!cfg.auto){$('meter').textContent=`${n} caracteres. Sem auto-resumo, o texto longo reduz a fonte e pode ser cortado.`;$('sumBox').hidden=true;return;}
+  if(n<=L){$('meter').textContent=`${n} caracteres. Cabe na peça (limite ${L}).`;$('sumBox').hidden=true;return;}
+  $('meter').textContent=cfg.carousel?`${n} caracteres. Será dividido em slides de até ${L} caracteres.`:`${n} caracteres. Será resumido para até ${L}.`;
+  if(cfg.carousel){const sl=localSlides(cfg.content,4);$('sumText').textContent=sl.map(s=>s.titulo+': '+s.texto).join(' • ');}
+  else $('sumText').textContent=summarize(cfg.content,L);
+  $('sumBox').hidden=false;
+}
+
+/* ---------- Entradas de arquivo ---------- */
+function bindDrop(drop,input,handler){
+  input.addEventListener('change',()=>{handler([...input.files]);input.value='';});
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
+  drop.addEventListener('drop',e=>handler([...e.dataTransfer.files]));
+}
+function renderRefs(){
+  const t=$('refThumbs');t.innerHTML='';
+  state.refs.forEach((r,i)=>{const im=el('img',{src:r.url,alt:'Referência '+(i+1)});t.append(el('div',{class:'thumb'},im,el('button',{type:'button','aria-label':'Remover referência',onclick:()=>{state.refs.splice(i,1);renderRefs();schedulePreview();}},'×')));});
+}
+function renderLogo(){
+  const t=$('logoThumb');t.innerHTML='';
+  if(state.logo)t.append(el('div',{class:'thumb logo'},el('img',{src:state.logo.url,alt:'Logo'}),el('button',{type:'button','aria-label':'Remover logo',onclick:()=>{state.logo=null;renderLogo();schedulePreview();}},'×')));
+}
+async function addRefs(files){
+  for(const f of files.filter(f=>f.type.startsWith('image/'))){if(state.refs.length>=6)break;try{state.refs.push(await loadImage(f));}catch(e){}}
+  renderRefs();schedulePreview();
+}
+async function setLogo(files){
+  const f=files.find(f=>f.type.startsWith('image/'));if(!f)return;
+  try{const r=await loadImage(f);r.lum=imgLum(r.img);state.logo=r;renderLogo();schedulePreview();}catch(e){toast('Não consegui abrir esse logo.');}
+}
+
+/* ---------- Inicialização ---------- */
+bindDrop($('refDrop'),$('refFile'),addRefs);
+bindDrop($('logoDrop'),$('logoFile'),setLogo);
+$('go').addEventListener('click',run);
+$('stop').addEventListener('click',()=>state.ctl&&state.ctl.abort());
+$('carousel').addEventListener('change',()=>{$('carOpts').hidden=!chk('carousel');schedulePreview();});
+$('wantCaption').addEventListener('change',()=>{$('capOpts').hidden=!chk('wantCaption');});
+$('clearExample').addEventListener('click',()=>{['brief','audience','title','subtitle','content'].forEach(id=>$(id).value='');schedulePreview();});
+['title','subtitle','content','tone','logoPos','auto','useBg'].forEach(id=>$(id).addEventListener('input',schedulePreview));
+document.querySelectorAll('input[name=fmt]').forEach(i=>i.addEventListener('change',schedulePreview));
+$('stop').hidden=true;
+
+(async function caps(){
+  const get=n=>(window.claude&&window.claude.use?window.claude.use(n).catch(()=>null):Promise.resolve(null));
+  const [s,d]=await Promise.all([get('sample'),get('downloads')]);
+  state.sample=s;state.downloads=d;
+  const b=$('aiBadge');b.textContent=s?'IA do Claude ativa':'modo local (sem IA)';b.classList.toggle('on',!!s);
+  document.querySelectorAll('.piece button.ghost').forEach(x=>x.hidden=!d);
+})();
+updatePreview();
+})();
+</script>
+
+</body></html>
